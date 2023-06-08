@@ -4,11 +4,11 @@ import numpy as np
 import numexpr as ne
 import blosc2
 
-R = 10
+MAX_STARS = 1_000
 RADIUS = 20_000
-MAX_STARS = 10_000
-CUBE_SIDE = RADIUS // R
 LY_OFFSET = RADIUS // 2
+R = 10
+CUBE_SIDE = RADIUS // R
 
 t0 = time()
 b = blosc2.open("gaia-ly.b2nd")
@@ -18,13 +18,14 @@ z = b[2, :MAX_STARS]
 print(f"Time to read: {time() - t0:.2f} s")
 
 t0 = time()
-R2 = 10 * R
+R2 = 4 * R
 CUBE_SIDE2 = RADIUS // R2
 shape = (CUBE_SIDE, CUBE_SIDE, CUBE_SIDE)
-b3d = blosc2.empty(shape, dtype=np.float32, # urlpath="gaia-3d-windows.b2nd", mode="w",
+b3d = blosc2.zeros(shape, dtype=np.float32,# urlpath="gaia-3d-windows.b2nd", mode="w",
                    chunks=(200, 200, 200), blocks=(20, 20, 20),
                    cparams={"clevel": 1, "codec": blosc2.Codec.ZSTD})
 total_stars = 0
+nstars = 0; nstars2 = 0
 for i in range(R2):
     _x = ne.evaluate("((x + LY_OFFSET) >= i * CUBE_SIDE2) & ((x + LY_OFFSET) < (i + 1) * CUBE_SIDE2)")
     x_offset = LY_OFFSET - i * CUBE_SIDE2
@@ -40,8 +41,8 @@ for i in range(R2):
             if nstars_in_window == 0:
                 continue
             total_stars += nstars_in_window
-            print(f"{i=}, {j=}, {k=}")
-            print("Number of stars in window:", nstars_in_window)
+            #print(f"{i=}, {j=}, {k=}")
+            #print("Number of stars in window:", nstars_in_window)
             star_x = x[stars_in_window]
             star_y = y[stars_in_window]
             star_z = z[stars_in_window]
@@ -53,11 +54,18 @@ for i in range(R2):
                 y2 = (int(y_) + y_offset) // R2
                 z2 = (int(z_) + z_offset) // R2
                 a3d[x2, y2, z2] += 1
-            print(f"Time to create inner 3d array: {time() - t1:.3f} s")
-            b3d[i * CUBE_SIDE2:(i + 1) * CUBE_SIDE2,
-                j * CUBE_SIDE2:(j + 1) * CUBE_SIDE2,
-                k * CUBE_SIDE2:(k + 1) * CUBE_SIDE2] = a3d
+            nstars += np.sum(a3d)
+            #print(f"Time to create inner 3d array: {time() - t1:.3f} s")
+            slice_ = (slice(i // R * CUBE_SIDE2, (i // R + 1) * CUBE_SIDE2),
+                      slice(j // R * CUBE_SIDE2, (j // R + 1) * CUBE_SIDE2),
+                      slice(k // R * CUBE_SIDE2, (k // R + 1) * CUBE_SIDE2))
+            #print(f"{slice_=}")
+            b3d[slice_] = a3d
+            #a3d_ = b3d[slice_]
+            #print(a3d.shape, a3d.dtype)
+            #print(a3d_.shape, a3d_.dtype)
+            #nstars2 += np.sum(a3d_)
 
-print(f"Total number of stars: {total_stars}")
+print(f"Total number of stars: {total_stars=} {nstars=}")
 print(f"Time to create outer 3d array: {time() - t0:.2f} s")
 print(b3d.info)
