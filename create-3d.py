@@ -1,6 +1,10 @@
+# Script to create a 3d array from the Gaia dataset.  This needs to keep the final 3d NumPy array
+# in memory, so it can only be used for such cubes that fit in (virtual) memory.
+
 from time import time
 import numpy as np
 import blosc2
+import math
 
 R = 2
 CUBE_SIDE = 20_000 // R
@@ -11,14 +15,14 @@ b = blosc2.open("gaia-ly.b2nd")
 x = b[0, :MAX_STARS]
 y = b[1, :MAX_STARS]
 z = b[2, :MAX_STARS]
-g = b[3, :MAX_STARS]
+#g = b[3, :MAX_STARS]
 
 print("len coords:", len(g))
 t0 = time()
 a3d = np.zeros((CUBE_SIDE, CUBE_SIDE, CUBE_SIDE), dtype=np.float32)
 for i, coords in enumerate(zip(x, y, z)):
     x_, y_, z_ = coords
-    a3d[(int(x_) + LY_OFFSET) // R, (int(y_) + LY_OFFSET) // R, (int(z_) + LY_OFFSET) // R] += g[i]
+    a3d[(math.floor(x_) + LY_OFFSET) // R, (math.floor(y_) + LY_OFFSET) // R, (math.floor(z_) + LY_OFFSET) // R] += 1
 print(f"Time to create 3d array: {time() - t0:.2f} s")
 
 t0 = time()

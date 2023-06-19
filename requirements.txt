@@ -2,3 +2,5 @@ pandas
 numpy
 numexpr
 blosc2
+zstandard
+tables

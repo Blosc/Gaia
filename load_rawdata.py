@@ -1,3 +1,5 @@
+# Script that loads the Gaia data and converts it to cartesian coordinates (in light years)
+
 import glob
 
 import pandas as pd
