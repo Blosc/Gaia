@@ -39,8 +39,8 @@ def load_rawdata(out=None):
 def to_ly(fin, fout):
     barr = blosc2.open(fin)
     t0 = time()
-    ra = barr[:, 0]
-    dec = barr[:, 1]
+    ra = barr[:, 0] * (np.pi / 180)
+    dec = barr[:, 1] * (np.pi / 180)
     parallax = barr[:, 2]
     print(f"Time load data: {time() - t0:.2f} s")
     t0 = time()
@@ -54,6 +54,7 @@ def to_ly(fin, fout):
     print(f"Time to cut data for lightyears: {time() - t0:.2f} s")
     t0 = time()
     # Compute x, y, z
+    # https://www.jameswatkins.me/posts/converting-equatorial-to-cartesian.html
     x = ne.evaluate("ly * cos(ra) * cos(dec)")
     y = ne.evaluate("ly * sin(ra) * cos(dec)")
     z = ne.evaluate("ly * sin(dec)")
