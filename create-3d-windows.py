@@ -17,7 +17,7 @@ R = 1
 CUBE_SIDE = RADIUS // R
 
 t0 = time()
-b = blosc2.open("gaia-ly-3.b2nd")
+b = blosc2.open("gaia-ly.b2nd")
 x = b[0, :MAX_STARS]
 y = b[1, :MAX_STARS]
 z = b[2, :MAX_STARS]
@@ -26,7 +26,7 @@ print(f"Time to read: {time() - t0:.2f} s")
 
 def create_windows(x, y, z, RADIUS, LY_OFFSET, R2, dtype=np.uint8):
     shape = (CUBE_SIDE, CUBE_SIDE, CUBE_SIDE)
-    b3d = blosc2.zeros(shape, dtype=dtype, urlpath="gaia-3d-windows-int8-3.b2nd", mode="w",
+    b3d = blosc2.zeros(shape, dtype=dtype, urlpath="gaia-3d-windows.b2nd", mode="w",
                        chunks=(250, 250, 250), blocks=(25, 25, 25),
                        cparams={"clevel": 1, "codec": blosc2.Codec.ZSTD})
     CUBE_SIDE2 = CUBE_SIDE // R2
