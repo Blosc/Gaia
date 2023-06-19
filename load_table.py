@@ -71,12 +71,12 @@ def load_table(outname=None):
                             ).to_records(index=False)
         #print(f"Time to convert to pandas: {time() - t0:.2f} s")
         table.append(rows)
+        table.flush()
         #print(f"Time to append to table: {time() - t0:.2f} s")
         nstars += len(idx)
         if nstars >= MAX_STARS:
             break
 
-    table.flush()
     return h5file
 
 
